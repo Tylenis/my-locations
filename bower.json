@@ -1,0 +1,23 @@
+{
+  "name": "Neighborhood map",
+  "authors": [
+    "Tylenis <nerijuskret@gmail.com>"
+  ],
+  "description": "Udacity The Frontend: Javascript and AJAX project.",
+  "main": "js/javascript.js",
+  "keywords": [
+    "map"
+  ],
+  "license": "MIT",
+  "homepage": "",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "knockout": "^3.4.2"
+  }
+}

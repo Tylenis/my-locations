@@ -15,11 +15,8 @@
         <div class="mdl-layout mdl-js-layout mdl-layout--fixed-drawer">
             <div class="mdl-layout__drawer">
                 <span class="mdl-layout-title">My Locations</span>
-                <nav class="mdl-navigation">
-                <a class="mdl-navigation__link" href="">Link</a>
-                <a class="mdl-navigation__link" href="">Link</a>
-                <a class="mdl-navigation__link" href="">Link</a>
-                <a class="mdl-navigation__link" href="">Link</a>
+                <nav class="mdl-navigation" data-bind="foreach: locations">
+                    <div class="mdl-navigation__link" data-bind="text: name"></div>
                 </nav>
             </div>
             <main class="mdl-layout__content">
@@ -29,10 +26,9 @@
                 </div>
             </main>
         </div>
+        <script async src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+        <script src="bower_components/knockout/dist/knockout.js"></script>
         <script src="js/javascript.js"></script>
-        <script async defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
-        <script async defer src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.4.2/knockout-min.js"></script>
-        <script async defer src="https://maps.googleapis.com/maps/api/js?v=3&key=AIzaSyAdM7lCBRpeX1GdIcS66kjscq-fGz7ozk8&callback=callback"></script>
-        <script src="js/javascript.js"></script>
+        <script async src="https://maps.googleapis.com/maps/api/js?v=3&key=AIzaSyAdM7lCBRpeX1GdIcS66kjscq-fGz7ozk8&callback=callback"></script>
     </body>
 </html>
