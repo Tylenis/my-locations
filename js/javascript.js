@@ -10,7 +10,15 @@ var location_data = [
 var AppViewModel = function(map){
     var self = this;
     self.map = map;
-    self.locations = ko.observableArray(location_data);
+    self.locations = ko.observableArray([]);
+
+    self.populateLocations = function(){
+        // Populate self.locations observable array.
+        location_data.forEach(function(item){
+            item.show = ko.observable(true);
+            self.locations.push(item);
+        });
+    };
 
     self.addMarkers = function(){
         self.locations().forEach(function(location){
@@ -19,13 +27,29 @@ var AppViewModel = function(map){
     };
 
     self.init = function(){
+        self.populateLocations();
         self.addMarkers();
+        document.getElementById('filter').addEventListener("input", self.filter); 
+    };
+
+    self.filter = function(){
+        console.log(this.value);
+        var expression = new RegExp(this.value, 'i');
+        self.locations()[0].show(false);
+        console.log(self.locations());
+        self.locations().forEach(function(item){
+            if(expression.test(item.name)){
+                item.show(true);
+            } else{
+                item.show(false);
+            }
+        });
     };
 
     self.init();
 }
 
-function callback(){
+function googleSuccess(){
     // Constructor creates a new map.
     var map = new google.maps.Map(document.getElementById('map'),{
         center: {lat: 55.703297, lng: 21.144279},
@@ -37,4 +61,8 @@ function callback(){
         },
     });
     ko.applyBindings(new AppViewModel(map));
+}
+
+function googleError(){
+    console.log("Do stuff here!")
 }

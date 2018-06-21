@@ -8,3 +8,11 @@ html, body {
     height: 100%;
     position: unset !important;
 }
+
+.mdl-textfield__label, .mdl-textfield__input {
+    text-align: center;
+}
+
+nav div.hide_item {
+    display: none !important;
+}
