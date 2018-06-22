@@ -18,3 +18,8 @@ html, body {
 nav div.hide_item {
     display: none !important;
 }
+
+#error-msg {
+    margin-top: 3em;
+    text-align: center;
+}

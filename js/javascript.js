@@ -16,6 +16,14 @@ var AppViewModel = function(map){
     self.markers = [];
     self.locations = ko.observableArray([]);
 
+    self.init = function(){
+        // Initialize app.
+        self.populateLocations();
+        self.initMarkers();
+        self.showMarkers();
+        document.getElementById('filter').addEventListener("input", self.filter);
+    };
+
     self.populateLocations = function(){
         // Populate self.locations observable array.
         location_data.forEach(function(item){
@@ -61,14 +69,6 @@ var AppViewModel = function(map){
         self.markers = [];
     };
 
-    self.init = function(){
-        // Initialize app.
-        self.populateLocations();
-        self.initMarkers();
-        self.showMarkers();
-        document.getElementById('filter').addEventListener("input", self.filter);
-    };
-
     self.filter = function(){
         // Filter out list and markers.
         var expression = new RegExp(this.value, 'i');
@@ -103,5 +103,7 @@ function googleSuccess(){
 };
 
 function googleError(){
-    console.log("Do stuff here!");
-}
+    var text = '<h3 id="error-msg">Sorry, we couldn\'t load the map.</h3>';
+    var parent = document.getElementById('map');
+    parent.innerHTML = text;
+};
