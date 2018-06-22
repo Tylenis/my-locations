@@ -6,7 +6,9 @@ html, body {
 
 #map {
     height: 100%;
-    position: unset !important;
+    left: 0;
+    right: 0;
+    position: absolute;
 }
 
 .mdl-textfield__label, .mdl-textfield__input {
