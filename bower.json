@@ -18,6 +18,7 @@
     "tests"
   ],
   "dependencies": {
-    "knockout": "^3.4.2"
+    "knockout": "^3.4.2",
+    "jquery": "^3.3.1"
   }
 }

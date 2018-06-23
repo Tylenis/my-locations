@@ -23,3 +23,38 @@ nav div.hide_item {
     margin-top: 3em;
     text-align: center;
 }
+
+.infowindow {
+    width: 320px;
+    height: 320px;
+    text-align: center;
+  }
+
+.img-container {
+    width: 100%;
+    height: 60%;
+}
+
+.info-title {
+    padding-bottom: 5px;
+    border-bottom: 1px solid gray;
+    font-weight: 100;
+}
+
+.spinner-container {
+    padding-top: 110px;
+    padding-left: 10px;
+}
+
+.address {
+    color: #8E8E8C;
+}
+
+@media only screen and (max-width: 380px) {
+    .infowindow {
+        width: 220px;
+    }
+    img {
+        width: 220px;
+    }
+}
