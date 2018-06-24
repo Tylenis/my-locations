@@ -23,8 +23,9 @@
                     </div>
                 </form>
                 <nav class="mdl-navigation" data-bind="foreach: locations">
-                    <div  class="mdl-navigation__link" data-bind="css: { hide_item: show() == false }">
-                        <span data-bind="text: title"></span>
+                    <div  class="mdl-navigation__link"
+                     data-bind="css: { hide_item: show() == false }, click: $parent.onItemClick,
+                      event: {mouseenter: $parent.startAnimation, mouseout: $parent.endAnimation}, text:title">
                     </div>
                 </nav>
             </div>

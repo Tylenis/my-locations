@@ -1,4 +1,4 @@
-const location_data = [
+const LOCATION_DATA = [
     {title: 'Švyturio Arena', location: {lat: 55.68745448842839, lng: 21.15200260962421}},
     {title: 'Clock and Watch Museum', location: {lat: 55.712415452967925, lng: 21.134070239354646}},
     {title: 'Smiltynė Beach', location: {lat: 55.70393548282197, lng: 21.099023948507458}},
@@ -12,7 +12,7 @@ const CLIENT_ID = '4ECKO5WEEW3HD03K0YOHG2HSPPRGJC1MZFFKH0N2TD5YY513';
 const CLIENT_SECRET = 'QNBN5OSNQY4HAFX2IVDVESWFGRBLXX1KXQSXZANWXDB4I0AO';
 const FOURSQUARE_API_URL = 'https://api.foursquare.com/v2/venues/';
 
-const map_center = {lat: 55.703297, lng: 21.144279};
+const MAP_CENTER = {lat: 55.703297, lng: 21.144279};
 
 var AppViewModel = function(map){
     let self = this;
@@ -32,7 +32,7 @@ var AppViewModel = function(map){
 
     self.populateLocations = function(){
         // Populate self.locations observable array.
-        location_data.forEach(function(item){
+        LOCATION_DATA.forEach(function(item){
             item.show = ko.observable(true);
             self.locations.push(item);
         });
@@ -51,6 +51,41 @@ var AppViewModel = function(map){
         });
     };
 
+    self.loadImage = function(venueid){
+        // Create and return jqXHR object to get image url from FourSquare API.
+        let request = $.ajax({
+            url: FOURSQUARE_API_URL + venueid + '/photos',
+            data: {
+                'client_id': CLIENT_ID,
+                'client_secret': CLIENT_SECRET,
+                'limit': 1,
+                'v': '20180623'
+            }
+        });
+        return request;
+    };
+
+    self.loadAddress = function(){
+        // Create and return jqXHR object to get address information from FourSquare API.
+        let lat = infowindow.marker.position.lat();
+        let lng = infowindow.marker.position.lng();
+
+       let request = $.ajax({
+            url: FOURSQUARE_API_URL + 'search',
+            data: {
+                'll': lat+','+lng,
+                'client_id': CLIENT_ID,
+                'client_secret': CLIENT_SECRET,
+                'limit': 1,
+                'v': '20180623'
+            },
+            headers: {
+                'Accept-Language': 'en',
+            }
+        });
+        return request;
+    };
+
     self.showMarkers = function(){
         // Add markers to map and center map accordingly.
         let bounds = new google.maps.LatLngBounds();
@@ -58,7 +93,7 @@ var AppViewModel = function(map){
             self.markers[i].setMap(self.map);
             bounds.extend(self.markers[i].position);
             self.markers[i].addListener('click', function(){
-                self.openInfoWindow(this, infowindow);
+                self.openInfoWindow(this);
             });
         }
         if(self.markers.length === 1){
@@ -66,7 +101,7 @@ var AppViewModel = function(map){
             self.map.setCenter(marker_position);
             self.map.setZoom(16);
         } else if(self.markers.length === 0){
-            self.map.setCenter(map_center)
+            self.map.setCenter(MAP_CENTER)
             self.map.setZoom(14);
         } else{
             self.map.fitBounds(bounds);
@@ -81,64 +116,43 @@ var AppViewModel = function(map){
         self.markers = [];
     };
 
-    self.loadImage = function(venueid){
-        $.ajax({
-            url: FOURSQUARE_API_URL+venueid+'/photos',
-            data: {
-                'client_id': CLIENT_ID,
-                'client_secret': CLIENT_SECRET,
-                'limit': 1,
-                'v': '20180623'
-            },
-            success: function(data){
-                let photoObj = data.response.photos.items[0]
-                let photoUrl = photoObj.prefix +'320x192'+ photoObj.suffix
-                let imgElement = `<img src="${photoUrl}">`;
-                $('.spinner-container').remove();
-                $('.img-container').html(imgElement);
-            },
-            error: function(error){
-                console.log(error);
+    self.onItemClick = function(data){
+        // Open infowindow on list item click. 
+        for(let i = 0; i<self.markers.length; i++){
+            if(self.markers[i].title==data.title){
+                let marker = self.markers[i];
+                self.openInfoWindow(marker);
             }
-        });
+        }
     };
 
-    self.loadInfoWindowContent = function(){
-        // Get content from FourSquare API and populate infowindow.
-        let lat = infowindow.marker.position.lat();
-        let lng = infowindow.marker.position.lng();
-
-        $.ajax({
-            url: FOURSQUARE_API_URL+'search',
-            data: {
-                'll': lat+','+lng,
-                'client_id': CLIENT_ID,
-                'client_secret': CLIENT_SECRET,
-                'limit': 1,
-                'v': '20180623'
-            },
-            headers: {
-                'Accept-Language': 'en',
-            },
-            success: function(data){
-                let venue = data.response.venues[0];
-                let venueAddress = venue.location.formattedAddress.join(', ');
-                let addressElement = `<p>${venueAddress}</p>`;
-                let venueId = venue.id;
-                self.loadImage(venueId);
-                $('.address').html(addressElement);
-            },
-            error: function(data){
-                console.log(data);
+    self.startAnimation = function(data){
+        // Start marker animation on list item mouseenter event.
+        for(let i = 0; i<self.markers.length; i++){
+            if(self.markers[i].title==data.title){
+                let marker = self.markers[i];
+                marker.setAnimation(google.maps.Animation.BOUNCE);
             }
-        });
+        }
     };
 
-    self.openInfoWindow = function(marker, infowindow){
+    self.endAnimation = function(data){
+        // End marker animation on list item mouseenter event.
+        for(let i = 0; i<self.markers.length; i++){
+            if(self.markers[i].title==data.title){
+                let marker = self.markers[i];
+                marker.setAnimation(null);
+            }
+        }
+    };
+
+    self.openInfoWindow = function(marker){
+        // Open infowindow and populate it.
         let spinner = `
             <div class="spinner-container">    
                 <i class="fas fa-spinner fa-spin fa-3x"></i>
             </div>`;
+
         let template = `
             <div class="infowindow">
                 <div class="img-container">
@@ -148,11 +162,41 @@ var AppViewModel = function(map){
                 <div class="address">
                 </div>
             </div>`;
+        
         if(infowindow.marker != marker){
             infowindow.marker = marker;
             infowindow.setContent(template);
             infowindow.open(self.map, marker);
-            self.loadInfoWindowContent();
+
+            self.loadAddress()
+                .done(function(data){
+                    let venue = data.response.venues[0];
+                    let venueAddress = venue.location.formattedAddress.join(', ');
+                    let addressElement = `<p>${venueAddress}</p>`;
+                    // self.loadImage(venueId);
+                    $('.address').html(addressElement);
+                })
+                .fail(function(error){
+                    let addressElement = `<p>Sorry, couldn't get the address</p>`;
+                    $('.address').html(addressElement);
+                })
+                .always(function(data){
+                    let venue = data.response.venues[0];
+                    let venueId = venue.id;
+                    self.loadImage(venueId)
+                        .done(function(data){
+                            let photoObj = data.response.photos.items[0]
+                            let photoUrl = photoObj.prefix +'320x192'+ photoObj.suffix
+                            let imgElement = `<img src="${photoUrl}">`;
+                            $('.spinner-container').remove();
+                            $('.img-container').html(imgElement);
+                        })
+                        .fail(function(error){
+                            $('.spinner-container').remove();
+                            $('.img-container').html(`<p class="img-error">Sorry, couldn't get the photo.</p>`);
+                        });
+                });
+
             infowindow.addListener('closeclick', function(){
                 infowindow.marker = null;
             });
@@ -180,7 +224,7 @@ var AppViewModel = function(map){
 function googleSuccess(){
     // Create a new map.
     let map = new google.maps.Map(document.getElementById('map'),{
-        center: map_center,
+        center: MAP_CENTER,
         zoom: 14,
         mapTypeControl: true,
         mapTypeControlOptions: {

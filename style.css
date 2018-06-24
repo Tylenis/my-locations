@@ -15,6 +15,10 @@ html, body {
     text-align: center;
 }
 
+.mdl-navigation__link {
+    cursor: pointer;
+}
+
 nav div.hide_item {
     display: none !important;
 }
@@ -50,11 +54,19 @@ nav div.hide_item {
     color: #8E8E8C;
 }
 
+.img-error {
+    padding-top: 100px;
+}
+
 @media only screen and (max-width: 380px) {
     .infowindow {
         width: 220px;
+        height: 280px;
     }
     img {
         width: 220px;
+    }
+    .img-container {
+        height: 50%;
     }
 }
