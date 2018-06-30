@@ -8,17 +8,42 @@ const LOCATION_DATA = [
     {title: '"Meridianas Tall Ship" restaurant', location: {lat: 55.71020684190002, lng: 21.134616721326314}}
 ];
 
+const MAP_CENTER = {lat: 55.703297, lng: 21.144279};
+const MAP_STYLES = {
+    night: [ 
+        { "elementType": "geometry", "stylers": [ { "color": "#242f3e" } ] },
+        { "elementType": "labels.text.fill", "stylers": [ { "color": "#746855" } ] },
+        { "elementType": "labels.text.stroke", "stylers": [ { "color": "#242f3e" } ] },
+        { "featureType": "administrative.locality", "elementType": "labels.text.fill", "stylers": [ { "color": "#d59563" } ] },
+        { "featureType": "poi", "elementType": "labels.text.fill", "stylers": [ { "color": "#d59563" } ] },
+        { "featureType": "poi.park", "elementType": "geometry", "stylers": [ { "color": "#263c3f" } ] },
+        { "featureType": "poi.park", "elementType": "labels.text.fill", "stylers": [ { "color": "#6b9a76" } ] },
+        { "featureType": "road", "elementType": "geometry", "stylers": [ { "color": "#38414e" } ] },
+        { "featureType": "road", "elementType": "geometry.stroke", "stylers": [ { "color": "#212a37" } ] },
+        { "featureType": "road", "elementType": "labels.text.fill", "stylers": [ { "color": "#9ca5b3" } ] },
+        { "featureType": "road.highway", "elementType": "geometry", "stylers": [ { "color": "#746855" } ] },
+        { "featureType": "road.highway", "elementType": "geometry.stroke", "stylers": [ { "color": "#1f2835" } ] },
+        { "featureType": "road.highway", "elementType": "labels.text.fill", "stylers": [ { "color": "#f3d19c" } ] },
+        { "featureType": "transit", "elementType": "geometry", "stylers": [ { "color": "#2f3948" } ] },
+        { "featureType": "transit.station", "elementType": "labels.text.fill", "stylers": [ { "color": "#d59563" } ] },
+        { "featureType": "water", "elementType": "geometry", "stylers": [ { "color": "#17263c" } ] },
+        { "featureType": "water", "elementType": "labels.text.fill", "stylers": [ { "color": "#515c6d" } ] },
+        { "featureType": "water", "elementType": "labels.text.stroke", "stylers": [ { "color": "#17263c" } ] } ],
+    day: []
+}
+
 const CLIENT_ID = '4ECKO5WEEW3HD03K0YOHG2HSPPRGJC1MZFFKH0N2TD5YY513';
 const CLIENT_SECRET = 'QNBN5OSNQY4HAFX2IVDVESWFGRBLXX1KXQSXZANWXDB4I0AO';
+
 const FOURSQUARE_API_URL = 'https://api.foursquare.com/v2/venues/';
 
-const MAP_CENTER = {lat: 55.703297, lng: 21.144279};
 
 var AppViewModel = function(map){
     let self = this;
     self.map = map;
     self.markers = [];
     self.locations = ko.observableArray([]);
+    self.checked = ko.observable(false);
 
     let infowindow = new google.maps.InfoWindow();
 
@@ -28,6 +53,9 @@ var AppViewModel = function(map){
         self.initMarkers();
         self.showMarkers();
         document.getElementById('filter').addEventListener("input", self.filter);
+        self.checked.subscribe(function(value){
+            self.setMapMode(value);
+        });
     };
 
     self.populateLocations = function(){
@@ -201,6 +229,18 @@ var AppViewModel = function(map){
                 infowindow.marker = null;
             });
         }
+    };
+
+    self.setMapMode = function(value){
+        let styledMapType;
+        if(value){
+            styledMapType = new google.maps.StyledMapType(MAP_STYLES.night);
+        } else{
+            styledMapType = new google.maps.StyledMapType(MAP_STYLES.day);
+        }
+        self.map.mapTypes.set('styled_map', styledMapType);
+        self.map.setMapTypeId('styled_map');
+
     };
 
     self.filter = function(){

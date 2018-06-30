@@ -11,6 +11,10 @@ html, body {
     position: absolute;
 }
 
+.mdl-layout-title {
+    text-align: center;
+}
+
 .mdl-textfield__label, .mdl-textfield__input {
     text-align: center;
 }
@@ -22,6 +26,33 @@ html, body {
 nav div.hide_item {
     display: none !important;
 }
+
+.content-bottom {
+    text-align: center;
+    position: absolute;
+    bottom: 0px;
+    width: 100%;
+}
+
+.mode-switcher-container {
+    margin: 40px 0px;
+    padding-left: 40px;
+    text-align: left;
+}
+.mdl-switch__label {
+    font-weight: 150;
+}
+
+.api {
+    padding: 15px 0px;
+    background: rgb(50, 179, 119);
+    color: white;
+}
+
+.api-header {
+    font-weight: 150;
+}
+
 
 #error-msg {
     margin-top: 3em;
@@ -68,5 +99,11 @@ nav div.hide_item {
     }
     .img-container {
         height: 50%;
+    }
+}
+
+@media only screen and (max-height: 680px) {
+    .content-bottom {
+        position: static;
     }
 }
