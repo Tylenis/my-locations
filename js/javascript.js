@@ -53,22 +53,22 @@ var AppViewModel = function(map){
         self.initMarkers();
         self.showMarkers();
         document.getElementById('filter').addEventListener("input", self.filter);
-        self.checked.subscribe(function(value){
+        self.checked.subscribe(value => {
             self.setMapMode(value);
         });
     };
 
-    self.populateLocations = function(){
+    self.populateLocations = () => {
         // Populate self.locations observable array.
-        LOCATION_DATA.forEach(function(item){
+        LOCATION_DATA.forEach(item => {
             item.show = ko.observable(true);
             self.locations.push(item);
         });
     };
 
-    self.initMarkers = function(){
+    self.initMarkers = () => {
         // Create list of markers.
-        self.locations().forEach(function(location){
+        self.locations().forEach(location => {
             if(location.show()){
                 var marker = new google.maps.Marker({
                     position: location.location,
@@ -79,7 +79,7 @@ var AppViewModel = function(map){
         });
     };
 
-    self.loadImage = function(venueid){
+    self.loadImage = venueid => {
         // Create and return jqXHR object to get image url from FourSquare API.
         let request = $.ajax({
             url: FOURSQUARE_API_URL + venueid + '/photos',
@@ -93,7 +93,7 @@ var AppViewModel = function(map){
         return request;
     };
 
-    self.loadAddress = function(){
+    self.loadAddress = () => {
         // Create and return jqXHR object to get address information from FourSquare API.
         let lat = infowindow.marker.position.lat();
         let lng = infowindow.marker.position.lng();
@@ -114,16 +114,16 @@ var AppViewModel = function(map){
         return request;
     };
 
-    self.showMarkers = function(){
+    self.showMarkers = () => {
         // Add markers to map and center map accordingly.
         let bounds = new google.maps.LatLngBounds();
-        for(var i = 0; i<self.markers.length; i++){
-            self.markers[i].setMap(self.map);
-            bounds.extend(self.markers[i].position);
-            self.markers[i].addListener('click', function(){
-                self.openInfoWindow(this);
+        self.markers.forEach(marker => {
+            marker.setMap(self.map);
+            bounds.extend(marker.position);
+            marker.addListener('click', () => {
+                self.openInfoWindow(marker);
             });
-        }
+        })
         if(self.markers.length === 1){
             let marker_position = self.markers[0].position;
             self.map.setCenter(marker_position);
@@ -136,7 +136,7 @@ var AppViewModel = function(map){
         }
     };
 
-    self.removeMarkers = function(){
+    self.removeMarkers = () => {
         // Delete markers.
         for(var i = 0; i<self.markers.length; i++){
             self.markers[i].setMap(null);
@@ -144,7 +144,7 @@ var AppViewModel = function(map){
         self.markers = [];
     };
 
-    self.onItemClick = function(data){
+    self.onItemClick = data => {
         // Open infowindow on list item click. 
         for(let i = 0; i<self.markers.length; i++){
             if(self.markers[i].title==data.title){
@@ -154,7 +154,7 @@ var AppViewModel = function(map){
         }
     };
 
-    self.startAnimation = function(data){
+    self.startAnimation = data => {
         // Start marker animation on list item mouseenter event.
         for(let i = 0; i<self.markers.length; i++){
             if(self.markers[i].title==data.title){
@@ -164,7 +164,7 @@ var AppViewModel = function(map){
         }
     };
 
-    self.endAnimation = function(data){
+    self.endAnimation = data => {
         // End marker animation on list item mouseenter event.
         for(let i = 0; i<self.markers.length; i++){
             if(self.markers[i].title==data.title){
@@ -174,7 +174,7 @@ var AppViewModel = function(map){
         }
     };
 
-    self.openInfoWindow = function(marker){
+    self.openInfoWindow = marker => {
         // Open infowindow and populate it.
         let spinner = `
             <div class="spinner-container">    
@@ -197,41 +197,40 @@ var AppViewModel = function(map){
             infowindow.open(self.map, marker);
 
             self.loadAddress()
-                .done(function(data){
+                .done(data => {
                     let venue = data.response.venues[0];
                     let venueAddress = venue.location.formattedAddress.join(', ');
                     let addressElement = `<p>${venueAddress}</p>`;
-                    // self.loadImage(venueId);
                     $('.address').html(addressElement);
                 })
-                .fail(function(error){
+                .fail(error => {
                     let addressElement = `<p>Sorry, couldn't get the address</p>`;
                     $('.address').html(addressElement);
                 })
-                .always(function(data){
+                .always(data => {
                     let venue = data.response.venues[0];
                     let venueId = venue.id;
                     self.loadImage(venueId)
-                        .done(function(data){
+                        .done(data => {
                             let photoObj = data.response.photos.items[0]
                             let photoUrl = photoObj.prefix +'320x192'+ photoObj.suffix
                             let imgElement = `<img src="${photoUrl}">`;
                             $('.spinner-container').remove();
                             $('.img-container').html(imgElement);
                         })
-                        .fail(function(error){
+                        .fail(error => {
                             $('.spinner-container').remove();
                             $('.img-container').html(`<p class="img-error">Sorry, couldn't get the photo.</p>`);
                         });
                 });
 
-            infowindow.addListener('closeclick', function(){
+            infowindow.addListener('closeclick', () => {
                 infowindow.marker = null;
             });
         }
     };
 
-    self.setMapMode = function(value){
+    self.setMapMode = value => {
         let styledMapType;
         if(value){
             styledMapType = new google.maps.StyledMapType(MAP_STYLES.night);
@@ -246,7 +245,7 @@ var AppViewModel = function(map){
     self.filter = function(){
         // Filter out list and markers.
         let expression = new RegExp(this.value, 'i');
-        self.locations().forEach(function(item){
+        self.locations().forEach(item => {
             if(expression.test(item.title)){
                 item.show(true);
             } else{
