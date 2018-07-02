@@ -37,144 +37,118 @@ const CLIENT_SECRET = 'QNBN5OSNQY4HAFX2IVDVESWFGRBLXX1KXQSXZANWXDB4I0AO';
 
 const FOURSQUARE_API_URL = 'https://api.foursquare.com/v2/venues/';
 
+const AJAX_SERVICES = {
+    loadImage: async function(venueId){
+        let url = `${FOURSQUARE_API_URL}${venueId}/photos?client_id=${CLIENT_ID}&client_secret=${CLIENT_SECRET}&limit=1&v=20180702`;
+        let response;
+        await fetch(url).then(
+            data => response = data.json()
+        ).catch(
+            error => response = error
+        )
+        return response;
+    },
+    loadAddress: async function(infowindow){
+        let lat = infowindow.marker.position.lat();
+        let lng = infowindow.marker.position.lng();
+        let response;
+        let url = `${FOURSQUARE_API_URL}search?ll=${lat},${lng}&client_id=${CLIENT_ID}&client_secret=${CLIENT_SECRET}&limit=1&v=20180702`;
+        await fetch(url, {headers: {'Accept-Language': 'en',}}).then(
+            data => response=data.json()
+        ).catch(
+            error => response = error
+        )
+        return response;
+    }
+}
 
-var AppViewModel = function(map){
-    let self = this;
-    self.map = map;
-    self.markers = [];
-    self.locations = ko.observableArray([]);
-    self.checked = ko.observable(false);
+class MapObj {
+    constructor(map){
+        this.map = map;
+        this.markers = [];
+        this.infowindow = new google.maps.InfoWindow();
+    }
 
-    let infowindow = new google.maps.InfoWindow();
-
-    self.init = function(){
-        // Initialize app.
-        self.populateLocations();
-        self.initMarkers();
-        self.showMarkers();
-        document.getElementById('filter').addEventListener("input", self.filter);
-        self.checked.subscribe(value => {
-            self.setMapMode(value);
-        });
-    };
-
-    self.populateLocations = () => {
-        // Populate self.locations observable array.
-        LOCATION_DATA.forEach(item => {
-            item.show = ko.observable(true);
-            self.locations.push(item);
-        });
-    };
-
-    self.initMarkers = () => {
+    initMarkers(locations){
         // Create list of markers.
-        self.locations().forEach(location => {
+        locations().forEach(location => {
             if(location.show()){
                 var marker = new google.maps.Marker({
                     position: location.location,
                     title: location.title
                 });
-                self.markers.push(marker);
+                this.markers.push(marker);
             }
         });
-    };
+    }
 
-    self.loadImage = venueid => {
-        // Create and return jqXHR object to get image url from FourSquare API.
-        let request = $.ajax({
-            url: FOURSQUARE_API_URL + venueid + '/photos',
-            data: {
-                'client_id': CLIENT_ID,
-                'client_secret': CLIENT_SECRET,
-                'limit': 1,
-                'v': '20180623'
-            }
-        });
-        return request;
-    };
-
-    self.loadAddress = () => {
-        // Create and return jqXHR object to get address information from FourSquare API.
-        let lat = infowindow.marker.position.lat();
-        let lng = infowindow.marker.position.lng();
-
-       let request = $.ajax({
-            url: FOURSQUARE_API_URL + 'search',
-            data: {
-                'll': lat+','+lng,
-                'client_id': CLIENT_ID,
-                'client_secret': CLIENT_SECRET,
-                'limit': 1,
-                'v': '20180623'
-            },
-            headers: {
-                'Accept-Language': 'en',
-            }
-        });
-        return request;
-    };
-
-    self.showMarkers = () => {
+    showMarkers(){
         // Add markers to map and center map accordingly.
         let bounds = new google.maps.LatLngBounds();
-        self.markers.forEach(marker => {
-            marker.setMap(self.map);
+        this.markers.forEach(marker => {
+            marker.setMap(this.map);
             bounds.extend(marker.position);
             marker.addListener('click', () => {
-                self.openInfoWindow(marker);
+                this.openInfoWindow(marker);
             });
         })
-        if(self.markers.length === 1){
-            let marker_position = self.markers[0].position;
-            self.map.setCenter(marker_position);
-            self.map.setZoom(16);
-        } else if(self.markers.length === 0){
-            self.map.setCenter(MAP_CENTER)
-            self.map.setZoom(14);
+        if(this.markers.length === 1){
+            let marker_position = this.markers[0].position;
+            this.map.setCenter(marker_position);
+            this.map.setZoom(16);
+        } else if(this.markers.length === 0){
+            this.map.setCenter(MAP_CENTER)
+            this.map.setZoom(14);
         } else{
-            self.map.fitBounds(bounds);
+            this.map.fitBounds(bounds);
         }
-    };
+    }
 
-    self.removeMarkers = () => {
+    removeMarkers(){
         // Delete markers.
-        for(var i = 0; i<self.markers.length; i++){
-            self.markers[i].setMap(null);
+        for(var i = 0; i<this.markers.length; i++){
+            this.markers[i].setMap(null);
         }
-        self.markers = [];
-    };
+        this.markers = [];
+    }
 
-    self.onItemClick = data => {
-        // Open infowindow on list item click. 
-        for(let i = 0; i<self.markers.length; i++){
-            if(self.markers[i].title==data.title){
-                let marker = self.markers[i];
-                self.openInfoWindow(marker);
+    setMapMode(value){
+        // Set map style.
+        let styledMapType;
+        if(value){
+            styledMapType = new google.maps.StyledMapType(MAP_STYLES.night);
+        } else{
+            styledMapType = new google.maps.StyledMapType(MAP_STYLES.day);
+        }
+        this.map.mapTypes.set('styled_map', styledMapType);
+        this.map.setMapTypeId('styled_map');
+
+    }
+
+    getActiveMarker(data){
+        // Get active marker.
+        let marker;
+        for(let i = 0; i<this.markers.length; i++){
+            if(this.markers[i].title==data.title){
+                marker = this.markers[i];
             }
         }
-    };
+        return marker;
+    }
 
-    self.startAnimation = data => {
-        // Start marker animation on list item mouseenter event.
-        for(let i = 0; i<self.markers.length; i++){
-            if(self.markers[i].title==data.title){
-                let marker = self.markers[i];
-                marker.setAnimation(google.maps.Animation.BOUNCE);
-            }
-        }
-    };
+    animationStart(data){
+        // Set marker animation.
+        let marker = this.getActiveMarker(data);
+        marker.setAnimation(google.maps.Animation.BOUNCE);
+    }
 
-    self.endAnimation = data => {
-        // End marker animation on list item mouseenter event.
-        for(let i = 0; i<self.markers.length; i++){
-            if(self.markers[i].title==data.title){
-                let marker = self.markers[i];
-                marker.setAnimation(null);
-            }
-        }
-    };
+    animationEnd(data){
+        // Remove marker animation.
+        let marker = this.getActiveMarker(data);
+        marker.setAnimation(null);
+    }
 
-    self.openInfoWindow = marker => {
+    async openInfoWindow(marker){
         // Open infowindow and populate it.
         let spinner = `
             <div class="spinner-container">    
@@ -191,55 +165,82 @@ var AppViewModel = function(map){
                 </div>
             </div>`;
         
-        if(infowindow.marker != marker){
-            infowindow.marker = marker;
-            infowindow.setContent(template);
-            infowindow.open(self.map, marker);
+        if(this.infowindow.marker != marker){
+            let venueId;
+            this.infowindow.marker = marker;
+            this.infowindow.setContent(template);
+            this.infowindow.open(this.map, marker);
 
-            self.loadAddress()
-                .done(data => {
-                    let venue = data.response.venues[0];
-                    let venueAddress = venue.location.formattedAddress.join(', ');
-                    let addressElement = `<p>${venueAddress}</p>`;
-                    $('.address').html(addressElement);
-                })
-                .fail(error => {
-                    let addressElement = `<p>Sorry, couldn't get the address</p>`;
-                    $('.address').html(addressElement);
-                })
-                .always(data => {
-                    let venue = data.response.venues[0];
-                    let venueId = venue.id;
-                    self.loadImage(venueId)
-                        .done(data => {
-                            let photoObj = data.response.photos.items[0]
-                            let photoUrl = photoObj.prefix +'320x192'+ photoObj.suffix
-                            let imgElement = `<img src="${photoUrl}">`;
-                            $('.spinner-container').remove();
-                            $('.img-container').html(imgElement);
-                        })
-                        .fail(error => {
-                            $('.spinner-container').remove();
-                            $('.img-container').html(`<p class="img-error">Sorry, couldn't get the photo.</p>`);
-                        });
-                });
+            let addressData = await AJAX_SERVICES.loadAddress(this.infowindow);
+            if( addressData.meta.code==200 ){
+                let venue = addressData.response.venues[0];
+                venueId = venue.id;
+                let venueAddress = venue.location.formattedAddress.join(', ');
+                let addressElement = `<p>${venueAddress}</p>`;
+                $('.address').html(addressElement);
+            } else {
+                let addressElement = `<p>Sorry, couldn't get the address</p>`;
+                $('.address').html(addressElement);
+            }
+            let imageData = await AJAX_SERVICES.loadImage(venueId);
+            if(imageData.meta.code == 200){
+                let photoObj = imageData.response.photos.items[0];
+                let photoUrl = photoObj.prefix +'320x192'+ photoObj.suffix;
+                let imgElement = `<img src="${photoUrl}">`;
+                $('.spinner-container').remove();
+                $('.img-container').html(imgElement);
+            } else {
+                $('.spinner-container').remove();
+                $('.img-container').html(`<p class="img-error">Sorry, couldn't get the photo.</p>`);
+            }
 
-            infowindow.addListener('closeclick', () => {
-                infowindow.marker = null;
+            this.infowindow.addListener('closeclick', () => {
+                this.infowindow.marker = null;
             });
         }
+    }
+}
+
+let AppViewModel = function(map){
+    let self = this;
+    self.map = map;
+
+    self.locations = ko.observableArray([]);
+    self.checked = ko.observable(false);
+
+    self.init = () => {
+        // Initialize app.
+        self.populateLocations();
+        self.map.initMarkers(self.locations);
+        self.map.showMarkers();
+        document.getElementById('filter').addEventListener("input", self.filter);
+        self.checked.subscribe(value => {
+            self.map.setMapMode(value);
+        });
     };
 
-    self.setMapMode = value => {
-        let styledMapType;
-        if(value){
-            styledMapType = new google.maps.StyledMapType(MAP_STYLES.night);
-        } else{
-            styledMapType = new google.maps.StyledMapType(MAP_STYLES.day);
-        }
-        self.map.mapTypes.set('styled_map', styledMapType);
-        self.map.setMapTypeId('styled_map');
+    self.populateLocations = () => {
+        // Populate self.locations observable array.
+        LOCATION_DATA.forEach(item => {
+            item.show = ko.observable(true);
+            self.locations.push(item);
+        });
+    };
+    
+    self.onItemClick = data => {
+        // Handle locations list item click event. 
+        let marker = self.map.getActiveMarker(data);
+        self.map.openInfoWindow(marker);
+    };
 
+    self.startAnimation = data => {
+        // Handle mouseenter event.
+        self.map.animationStart(data);
+    };
+
+    self.endAnimation = data => {
+        // Handle mouseout event.
+        self.map.animationEnd(data);
     };
 
     self.filter = function(){
@@ -252,9 +253,9 @@ var AppViewModel = function(map){
                 item.show(false);
             }
         });
-        self.removeMarkers();
-        self.initMarkers();
-        self.showMarkers();
+        self.map.removeMarkers();
+        self.map.initMarkers(self.locations);
+        self.map.showMarkers();
     };
 
     self.init();
@@ -262,7 +263,7 @@ var AppViewModel = function(map){
 
 function googleSuccess(){
     // Create a new map.
-    let map = new google.maps.Map(document.getElementById('map'),{
+    let googleMap = new google.maps.Map(document.getElementById('map'),{
         center: MAP_CENTER,
         zoom: 14,
         mapTypeControl: true,
@@ -271,8 +272,8 @@ function googleSuccess(){
             position: google.maps.ControlPosition.TOP_CENTER
         },
     });
-
-    ko.applyBindings(new AppViewModel(map));
+    let Map = new MapObj(googleMap);
+    ko.applyBindings(new AppViewModel(Map));
 };
 
 function googleError(){
