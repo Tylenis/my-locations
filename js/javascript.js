@@ -174,28 +174,37 @@ class MapObj {
             this.infowindow.open(this.map, marker);
 
             let addressData = await AJAX_SERVICES.loadAddress(this.infowindow);
-            if( addressData.meta.code==200 ){
-                let venue = addressData.response.venues[0];
-                venueId = venue.id;
-                let venueAddress = venue.location.formattedAddress.join(', ');
-                let addressElement = `<p>${venueAddress}</p>`;
-                let parent = document.getElementById('address');
-                parent.innerHTML = addressElement;
-            } else {
+            try {
+                if( addressData.meta.code==200 ){
+                    let venue = addressData.response.venues[0];
+                    venueId = venue.id;
+                    let venueAddress = venue.location.formattedAddress.join(', ');
+                    let addressElement = `<p>${venueAddress}</p>`;
+                    let parent = document.getElementById('address');
+                    parent.innerHTML = addressElement;
+                } else {
+                    throw 'error';
+                }
+            } catch (error) {
                 let addressElement = `<p>Sorry, couldn't get the address</p>`;
                 let parent = document.getElementById('address');
                 parent.innerHTML = addressElement;
             }
+
             let imageData = await AJAX_SERVICES.loadImage(venueId);
-            if(imageData.meta.code == 200){
-                let photoObj = imageData.response.photos.items[0];
-                let photoUrl = photoObj.prefix +'320x192'+ photoObj.suffix;
-                let imgElement = `<img src="${photoUrl}">`;
-                let spinnerElement = document.getElementById('spinner-container');
-                let parent = document.getElementById('img-container');
-                spinnerElement.remove();
-                parent.innerHTML = imgElement;
-            } else {
+            try {
+                if(imageData.meta.code == 200){
+                    let photoObj = imageData.response.photos.items[0];
+                    let photoUrl = photoObj.prefix +'320x192'+ photoObj.suffix;
+                    let imgElement = `<img src="${photoUrl}">`;
+                    let spinnerElement = document.getElementById('spinner-container');
+                    let parent = document.getElementById('img-container');
+                    spinnerElement.remove();
+                    parent.innerHTML = imgElement;
+                } else {
+                    throw 'error';
+                }
+            } catch (error) {
                 let errorElement = `<p class="img-error">Sorry, couldn't get the photo.</p>`;
                 let spinnerElement = document.getElementById('spinner-container');
                 let parent = document.getElementById('img-container');
