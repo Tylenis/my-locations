@@ -30,7 +30,7 @@ const MAP_STYLES = {
         { "featureType": "water", "elementType": "labels.text.fill", "stylers": [ { "color": "#515c6d" } ] },
         { "featureType": "water", "elementType": "labels.text.stroke", "stylers": [ { "color": "#17263c" } ] } ],
     day: []
-}
+};
 
 const CLIENT_ID = '4ECKO5WEEW3HD03K0YOHG2HSPPRGJC1MZFFKH0N2TD5YY513';
 const CLIENT_SECRET = 'QNBN5OSNQY4HAFX2IVDVESWFGRBLXX1KXQSXZANWXDB4I0AO';
@@ -62,7 +62,7 @@ const AJAX_SERVICES = {
         )
         return response;
     }
-}
+};
 
 class MapObj {
     constructor(map){
@@ -277,7 +277,7 @@ let AppViewModel = function(map){
     };
 
     self.init();
-}
+};
 
 function googleSuccess(){
     // Create a new map.
@@ -295,6 +295,7 @@ function googleSuccess(){
 };
 
 function googleError(){
+
     let text = '<h3 id="error-msg">Sorry, we couldn\'t load the map.</h3>';
     let parent = document.getElementById('map');
     parent.innerHTML = text;
