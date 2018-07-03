@@ -39,6 +39,7 @@ const FOURSQUARE_API_URL = 'https://api.foursquare.com/v2/venues/';
 
 const AJAX_SERVICES = {
     loadImage: async function(venueId){
+        // Fetch image url from FourSquere API.
         let url = `${FOURSQUARE_API_URL}${venueId}/photos?client_id=${CLIENT_ID}&client_secret=${CLIENT_SECRET}&limit=1&v=20180702`;
         let response;
         await fetch(url).then(
@@ -49,6 +50,7 @@ const AJAX_SERVICES = {
         return response;
     },
     loadAddress: async function(infowindow){
+        // Fetch location data from FourSquere API.
         let lat = infowindow.marker.position.lat();
         let lng = infowindow.marker.position.lng();
         let response;
@@ -151,17 +153,17 @@ class MapObj {
     async openInfoWindow(marker){
         // Open infowindow and populate it.
         let spinner = `
-            <div class="spinner-container">    
+            <div id="spinner-container">    
                 <i class="fas fa-spinner fa-spin fa-3x"></i>
             </div>`;
 
         let template = `
             <div class="infowindow">
-                <div class="img-container">
+                <div id="img-container">
                     ${spinner}
                 </div>
                 <h5 class="info-title">${marker.title}</h5>
-                <div class="address">
+                <div id="address">
                 </div>
             </div>`;
         
@@ -177,21 +179,28 @@ class MapObj {
                 venueId = venue.id;
                 let venueAddress = venue.location.formattedAddress.join(', ');
                 let addressElement = `<p>${venueAddress}</p>`;
-                $('.address').html(addressElement);
+                let parent = document.getElementById('address');
+                parent.innerHTML = addressElement;
             } else {
                 let addressElement = `<p>Sorry, couldn't get the address</p>`;
-                $('.address').html(addressElement);
+                let parent = document.getElementById('address');
+                parent.innerHTML = addressElement;
             }
             let imageData = await AJAX_SERVICES.loadImage(venueId);
             if(imageData.meta.code == 200){
                 let photoObj = imageData.response.photos.items[0];
                 let photoUrl = photoObj.prefix +'320x192'+ photoObj.suffix;
                 let imgElement = `<img src="${photoUrl}">`;
-                $('.spinner-container').remove();
-                $('.img-container').html(imgElement);
+                let spinnerElement = document.getElementById('spinner-container');
+                let parent = document.getElementById('img-container');
+                spinnerElement.remove();
+                parent.innerHTML = imgElement;
             } else {
-                $('.spinner-container').remove();
-                $('.img-container').html(`<p class="img-error">Sorry, couldn't get the photo.</p>`);
+                let errorElement = `<p class="img-error">Sorry, couldn't get the photo.</p>`;
+                let spinnerElement = document.getElementById('spinner-container');
+                let parent = document.getElementById('img-container');
+                spinnerElement.remove();
+                parent.innerHTML = errorElement;
             }
 
             this.infowindow.addListener('closeclick', () => {
